@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+    <div class="app-container">
+        <aside id="sidebar">
+            <h2>Filters</h2>
+            <div class="filter-controls">
+                <div class="search-container">
+                    <input type="text" id="search-input" placeholder="Search by title or description...">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 21L16.65 16.65" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+
+                <label for="filter-status">Filter by Status</label>
+                <select id="filter-status">
+                    <option value="all">All Statuses</option>
+                    <option value="Awaiting-Development">Awaiting-Development</option>
+                    <option value="In-Progress">In-Progress</option>
+                    <option value="Testing">Testing</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Done">Done</option>
+                    <option value="Deleted">Deleted</option>
+                </select>
+
+                <label for="filter-start-date">Start Date</label>
+                <input type="date" id="filter-start-date">
+
+                <label for="filter-end-date">End Date</label>
+                <input type="date" id="filter-end-date">
+
+                <button id="reset-filters-btn" type="button">Reset Filters</button>
+            </div>
+        </aside>
+
+        <div class="main-content">
+            <header>
+                <h1>Task-Nexus</h1>
+                <div class="header-controls">
+                    <button id="add-task-table-btn" class="is-hidden">+ Add Task</button>
+                    <div class="view-switcher">
+                        <button id="grid-view-btn" class="active">Grid View</button>
+                        <button id="tabular-view-btn">Table View</button>
+                    </div>
+
+                    <div class="notification-area">
+                        <div class="notification-bell">
+                            <span id="notification-counter" class="counter is-hidden">0</span>
+                            <svg viewBox="0 0 24 24" fill="currentColor" width="28" height="28"><path d="M21,19V20H3V19L5,17V11C5,7.9 7.03,5.17 10,4.29V4A2,2 0 0,1 12,2A2,2 0 0,1 14,4V4.29C16.97,5.17 19,7.9 19,11V17L21,19M14,21A2,2 0 0,1 12,23A2,2 0 0,1 10,21"></path></svg>
+                        </div>
+                        <div id="notification-panel" class="notification-panel is-hidden">
+                            </div>
+                    </div>
+                </div>
+            </header>
+
+            <main>
+                <div id="task-container" class="grid-view"></div>
+                <div id="table-container" class="is-hidden"></div>
+            </main>
+        </div>
+    </div>
+
+    <div id="toast-notification"></div>
+
+    <dialog id="add-task-dialog">
+        <div class="dialog-header">
+            <button type="button" id="close-add-dialog-btn">&times;</button>
+        </div>
+        <div class="dialog-body">
+            <form id="new-task">
+                <label for="Name"> Task Name
+                    <input type="text" id="Name" placeholder="e.g., Design the new logo"/>
+                    <div id="name-error" class="error-message"></div>
+                </label>
+                <label for="Description"> Task Description
+                    <textarea rows="3" id="Description" placeholder="e.g., Create a modern and clean logo for the project"></textarea>
+                    <div id="description-error" class="error-message"></div>
+                </label>
+                <label for="Priority"> Priority
+                    <select id="Priority">
+                        <option value="Urgent">Urgent</option>
+                        <option value="High">High</option>
+                        <option value="Normal" selected>Normal</option>
+                        <option value="Low">Low</option>
+                    </select>
+                </label>
+                <div class="dialog-footer">
+                    <button type="submit" id="submit-button">Add Task</button>
+                    <button type="button" id="cancel-button">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+
+    <dialog id="description-popup">
+        <form id="modal-form" onsubmit="return false;">
+            <div class="dialog-header">
+                <button type="button" id="close-popup">&times;</button>
+            </div>
+            <div class="dialog-body">
+                <div class="popup-layout-container">
+                    <div class="popup-column-left">
+                        <div class="form-field">
+                            <label>Task Name:</label>
+                            <p id="popup-task-name-display" class="clickable-text">Task Name</p>
+                            <input type="text" id="popup-task-name-input" placeholder="Task Name" style="display: none;">
+                            <div id="popup-name-error" class="error-message"></div>
+                        </div>
+                        <div class="form-field">
+                            <label>Description:</label>
+                            <textarea id="popup-description-display" rows="3" readonly style="cursor: pointer; border: 2px solid transparent; padding: 8px;"></textarea>
+                            <textarea id="popup-description-input" rows="3" placeholder="Enter your task description" style="display: none;"></textarea>
+                            <div id="popup-description-error" class="error-message"></div>
+                        </div>
+                        <div id="parent-task-section" class="form-field" style="display: none;">
+                            <label>Parent Task:</label>
+                            <div id="parent-task-link" class="parent-task-link-item"></div>
+                        </div>
+                        <div id="subtasks-section" class="form-field">
+                            <label>Subtasks:</label>
+                            <div id="subtodo-list-container"></div>
+                        </div>
+                        <div class="form-field">
+                            <label>Attachments:</label>
+                            <div id="attachments-list-container"></div>
+                            <div class="add-feature-container">
+                                <button type="button" id="add-feature-btn">+</button>
+                                <div id="add-feature-dropdown" class="dropdown-content">
+                                    <button type="button" id="add-attachment-btn" class="feature-button">Attachment</button>
+                                    <button type="button" id="add-subtodo-btn" class="feature-button">Sub-Todo</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="popup-column-right">
+                        <div class="form-field">
+                            <label>Priority:</label>
+                            <p id="popup-priority-display">Normal</p>
+                        </div>
+                        <div class="form-field">
+                            <label for="task-status">Status:</label>
+                            <p id="popup-status-display" class="clickable-text">Status</p>
+                            <select class="dropdown-menu" id="popup-status-input" style="display: none;">
+                                <option value="Awaiting-Development">Awaiting-Development</option>
+                                <option value="In-Progress">In-Progress</option>
+                                <option value="Testing">Testing</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Done">Done</option>
+                            </select>
+                        </div>
+                        <div class="form-field" id="start-time-field">
+                            <label>Start Time:</label>
+                            <p id="popup-starttime-display" class="clickable-text"></p>
+                            <input type="date" id="popup-starttime-input" style="display: none;">
+                        </div>
+                        <div class="form-field" id="end-time-field">
+                            <label>End Time:</label>
+                            <p id="popup-endtime-display" class="clickable-text"></p>
+                            <input type="date" id="popup-endtime-input" style="display: none;">
+                        </div>
+                        <div id="popup-general-error" class="error-message"></div>
+                    </div>
+                </div>
+                <div class="form-field" id="deletion-reason-field" style="display: none;">
+                    <label>Reason for Deletion:</label>
+                    <textarea id="popup-deletion-reason" readonly rows="3"></textarea>
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button type="button" id="save-task-btn" style="display: none;">Save</button>
+                <button type="button" id="delete-task-btn">Delete</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="confirm-dialog">
+        <div class="dialog-body">
+            <p id="confirm-message">Are you sure?</p>
+        </div>
+        <div class="dialog-footer">
+            <button type="button" id="confirm-btn-yes">Confirm</button>
+            <button type="button" id="confirm-btn-cancel">Cancel</button>
+        </div>
+    </dialog>
+
+    <dialog id="delete-reason-dialog">
+        <form id="delete-reason-form">
+            <div class="dialog-header-title">
+                <h2>Reason for Deletion</h2>
+            </div>
+            <div class="dialog-body">
+                <label for="delete-reason-input">A reason is mandatory to delete this task.</label>
+                <textarea id="delete-reason-input" rows="4" placeholder="Enter reason..."></textarea>
+                <div id="delete-reason-error" class="error-message"></div>
+            </div>
+            <div class="dialog-footer">
+                <button type="submit" id="confirm-delete-with-reason-btn">Confirm Delete</button>
+                <button type="button" id="cancel-delete-reason-btn">Cancel</button>
+            </div>
+        </form>
+    </dialog>
+
+    <input type="file" id="file-uploader" style="display: none;" />
+
+    <script src="script1.js"></script>
+</body>
+</html>
